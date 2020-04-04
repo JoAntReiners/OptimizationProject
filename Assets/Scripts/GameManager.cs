@@ -35,19 +35,28 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        //Setting it up so that when Gold is Earned Progress is Saved and the Text is Updated
+
         OnGoldEarnedCallback += UpdateGoldText;
         OnGoldEarnedCallback += SaveProgress;
+
+        //Loading previous progress if such progress exists
+
         LoadProgress();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        //Calls the Gold Per Second Method to continue updating the amount of gold the player has
+
         GoldPerSecondCalc();   
     }
 
     public void CoinButton()
     {
+        //Adds One Gold to the Total Count, then Checks to see if the player has enough to buy any upgrades
+        //Afterwards it invokes the Callback which in turn updates the UI
+
         CurrentGold++;
         CheckButtons();
         OnGoldEarnedCallback.Invoke();
@@ -55,6 +64,10 @@ public class GameManager : MonoBehaviour
 
     public void BuyDRank()
     {
+        //Subtracts the cost of the upgrade, updates the gold per second value to whatever it was previously
+        //plus the value of the upgrade, updates the amount of said upgrade owned, then updates text
+        //the button states, and invokes the callback
+
         CurrentGold -= DRankCost;
         GoldPerSecond += DRankGPS;
         DRankOwned++;
@@ -65,6 +78,10 @@ public class GameManager : MonoBehaviour
 
     public void BuyCRank()
     {
+        //Subtracts the cost of the upgrade, updates the gold per second value to whatever it was previously
+        //plus the value of the upgrade, updates the amount of said upgrade owned, then updates text
+        //the button states, and invokes the callback
+
         CurrentGold -= CRankCost;
         GoldPerSecond += CRankGPS;
         CRankOwned++;
@@ -75,6 +92,10 @@ public class GameManager : MonoBehaviour
 
     public void BuyBRank()
     {
+        //Subtracts the cost of the upgrade, updates the gold per second value to whatever it was previously
+        //plus the value of the upgrade, updates the amount of said upgrade owned, then updates text
+        //the button states, and invokes the callback
+
         CurrentGold -= BRankCost;
         GoldPerSecond += BRankGPS;
         BRankOwned++;
@@ -85,6 +106,8 @@ public class GameManager : MonoBehaviour
 
     private void SaveProgress()
     {
+        //Saves the Current Gold, Gold Per Second, and Upgrades Owned values so they can be accessed upon returning to the game
+
         PlayerPrefs.SetFloat("CurrentGold", CurrentGold);
         PlayerPrefs.SetFloat("GoldPerSecond", GoldPerSecond);
         PlayerPrefs.SetInt("DRankOwned", DRankOwned);
@@ -94,20 +117,30 @@ public class GameManager : MonoBehaviour
 
     private void LoadProgress()
     {
+        //Loads previous values
+
         CurrentGold = PlayerPrefs.GetFloat("CurrentGold");
         GoldPerSecond = PlayerPrefs.GetFloat("GoldPerSecond");
         DRankOwned = PlayerPrefs.GetInt("DRankOwned");
         CRankOwned = PlayerPrefs.GetInt("CRankOwned");
         BRankOwned = PlayerPrefs.GetInt("BRankOwned");
 
+        //Checks to see if there is a TimeQuit string
         if(!PlayerPrefs.GetString("TimeQuit", "None").Equals("None"))
         {
+            //Gets the Tick value that the player quit at, then subtracts it from the current tick value
+            //Then gets the elapsed seconds and gets the gold that was earned over that time and adds it
+            //to the current gold amount
+
             long TimeQuit = long.Parse(PlayerPrefs.GetString("TimeQuit"));
             long TimeElapsed = System.DateTime.Now.Ticks - TimeQuit;
             TimeSpan ElapsedTime = new TimeSpan(TimeElapsed);
 
             CurrentGold += (float)(ElapsedTime.TotalSeconds * GoldPerSecond);
         }
+
+        //Updating UI and the Button states due to the fact that Values possibly have changed 
+        //due to the loading
 
         UpdateGoldText();
         CheckButtons();
@@ -116,11 +149,14 @@ public class GameManager : MonoBehaviour
 
     private void UpdateGoldText()
     {
+        //Updates the Main Gold Text
         GoldText.text = "You have\n" + (int)CurrentGold + "\nGold";
     }
 
     private void UpdateOwnedText()
     {
+        //Updates the Amount of Each Upgrade Owned Text
+
         DRankOwnedText.text = "Owned: " + DRankOwned;
         CRankOwnedText.text = "Owned: " + CRankOwned;
         BRankOwnedText.text = "Owned: " + BRankOwned;
@@ -128,6 +164,9 @@ public class GameManager : MonoBehaviour
 
     private void GoldPerSecondCalc()
     {
+        //Adds the Gold Per Second Value to Current Gold once per second
+        //then updates button states and invokes the Callback
+
         CurrentGold += (GoldPerSecond * Time.deltaTime);
         CheckButtons();
         OnGoldEarnedCallback.Invoke();
@@ -135,6 +174,9 @@ public class GameManager : MonoBehaviour
 
     private void CheckButtons()
     {
+        //Checks to see if the player can afford the upgrade, if they can enables the button
+        //if they can't disables the button
+
         if(CurrentGold >= DRankCost)
         {
             DRankButton.interactable = true;
@@ -165,6 +207,8 @@ public class GameManager : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        //Gets the current tick when the application is closed and saves it as a string for future loading
+
         PlayerPrefs.SetString("TimeQuit", System.DateTime.Now.Ticks.ToString());
     }
 }
