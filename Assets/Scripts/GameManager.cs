@@ -31,14 +31,19 @@ public class GameManager : MonoBehaviour
     private float DRankGPS = 1;
     private float CRankGPS = 100;
     private float BRankGPS = 500;
+    /*----------------------------------------Matthew Sankey added variable--------------------------------------*/
+    private float MaxGold = 2147483647; //the limit for integers is 2,147,483,647
     #endregion
+
 
     void Start()
     {
         //Setting it up so that when Gold is Earned Progress is Saved and the Text is Updated
 
-        OnGoldEarnedCallback += UpdateGoldText;
-        OnGoldEarnedCallback += SaveProgress;
+        OnGoldEarnedCallback += UpdateGoldText; //UpdateGoldText should replace this
+        
+        //OnGoldEarnedCallback += SaveProgress;
+        /*-------------------------------------Commented out this---------------------------------------------*/
 
         //Loading previous progress if such progress exists
 
@@ -57,7 +62,10 @@ public class GameManager : MonoBehaviour
         //Adds One Gold to the Total Count, then Checks to see if the player has enough to buy any upgrades
         //Afterwards it invokes the Callback which in turn updates the UI
 
-        CurrentGold++;
+        if (CurrentGold < MaxGold)  /*-----------------------------Matthew Sankey added a cap here------------------------*/
+        {
+            CurrentGold++;
+        }
         CheckButtons();
         OnGoldEarnedCallback.Invoke();
     }
@@ -165,9 +173,12 @@ public class GameManager : MonoBehaviour
     private void GoldPerSecondCalc()
     {
         //Adds the Gold Per Second Value to Current Gold once per second
-        //then updates button states and invokes the Callback
 
-        CurrentGold += (GoldPerSecond * Time.deltaTime);
+        //then updates button states and invokes the Callback
+        if (CurrentGold < MaxGold) /*-----------------------------Matthew Sankey added a cap here------------------------*/
+        {
+            CurrentGold += (GoldPerSecond * Time.deltaTime);
+        }
         CheckButtons();
         OnGoldEarnedCallback.Invoke();
     }
@@ -205,8 +216,36 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void OnApplicationFocus(bool focus)
+    {
+        if(!focus)
+        {
+            SaveProgress();
+
+            //Gets the current tick when the application is closed and saves it as a string for future loading
+
+            PlayerPrefs.SetString("TimeQuit", System.DateTime.Now.Ticks.ToString());
+        }
+        else
+        {
+            LoadProgress();
+        }
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        SaveProgress();
+
+        //Gets the current tick when the application is closed and saves it as a string for future loading
+
+        PlayerPrefs.SetString("TimeQuit", System.DateTime.Now.Ticks.ToString());
+    }
+
     private void OnApplicationQuit()
     {
+        /*------------------------Matthew Sankey moved saved progress--------------------------------*/
+        SaveProgress();
+
         //Gets the current tick when the application is closed and saves it as a string for future loading
 
         PlayerPrefs.SetString("TimeQuit", System.DateTime.Now.Ticks.ToString());
